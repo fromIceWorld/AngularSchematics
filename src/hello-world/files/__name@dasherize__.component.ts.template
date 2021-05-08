@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, EventEmitter } from '@angular/core';
+import { <%=classify(name)%>Service } from "./<%= name %>.service";
+import { MessageService } from "tui-component-library";
 
 @Component({
   selector: 'app-<%= dasherize(name) %>',
@@ -6,9 +8,129 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./<%= dasherize(name) %>.component.scss']
 })
 export class <%=classify(name)%>Component implements OnInit {
+  seeOrEditEvent = new EventEmitter();
+  first: number = 0;
+  tabelLoading: boolean = true;
+  tableList:any = [];
+  tabelSelected:any = [];
+  init: number = 0;
+  total: number = 0;
+  <%# -----------搜索框内的变量---------- %>
+  searchParams = {
+    page: 1,
+    size: 10,
+    <% 
+      for(var input of search){
+        __p += input.ngModel + ': ' + '""' + ',\n';
+      }
+    %>
+  };
 
-  constructor() { }
+  <%# -----------table表头---------- %>
+  tableHeader = [
+  <% 
+        for(var header of tableHeader){
+            __p+= '{' ;
+          for(var key of Object.keys(header)){
+            __p +=  key + ': ' + '"' + header[key]+ '"' + ',\n'; 
+          }
+            __p+= '},' ;
+      }
+   %>];
 
+  <%# -----------按钮事件函数---------- %>
+  // tabel page，size更改事件
+  pageChange(e) {
+      this.tabelSelected = [];
+      this.searchParams.page = e.page + 1;
+      this.searchParams.size = e.rows;
+      this.getTabelList();
+  }
+  // 注入服务依赖
+  constructor(
+    private messageService: MessageService,
+    private <%=classify(name)%>Service: <%=classify(name)%>Service,
+  ) { }
+  //tabel列表数据
+  getTabelList(){
+    this.init = 0;
+    this.tabelLoading = true;
+    this.<%=classify(name)%>Service.getTabelList(this.searchParams).subscribe(
+      (data: any) => {
+        if (data.code == 200) {
+          this.first = data.data.startRow - 1;
+          this.total = data.data.total;
+          this.tableList = data.data.list;
+        }
+        this.tabelLoading = false;
+        this.init++;
+      },
+      (err) => {
+        this.tabelLoading = false;
+      }
+    );
+  }
+  // 重置查询字段 
+  reset(){
+    this.searchParams = {
+      page: 1,
+      size: 10,
+      <% 
+        for(var input of search){
+          __p += input.ngModel + ': ' + '""' + ',\n';
+        }
+      %>
+    }
+  }
+  // 新增 
+  see(){
+    this.seeOrEditEvent.emit('see');
+  }
+  // 新增 
+  add(){
+    this.seeOrEditEvent.emit('add');
+  }
+  // 新增 
+  edit(){
+    this.seeOrEditEvent.emit('edit');
+  }
+  // 批量删除弹窗 
+  batchDel(){
+    this.seeOrEditEvent.emit('batchDel');
+  }
+  //  批量删除接口
+  batchDelService(){
+    let ids = this.tabelSelected.map((item) => {
+      return item.id;
+    });
+    this.<%=classify(name)%>Service
+      .delAll({ ids: ids.join(",") })
+      .subscribe((res: any) => {
+        if (res.code == 200) {
+          this.messageService.add({
+            severity: "success",
+            summary: "批量删除组件成功",
+          });
+          this.tabelSelected = [];
+          this.getTabelList();
+        } else {
+          this.messageService.add({
+            severity: "error",
+            summary: "批量删除组件失败",
+            detail: res.message,
+          });
+        }
+      });
+  }
+  // 下载模板 
+  downLoad(){
+
+  }
+  // 导入数据 
+  import(){
+
+  }
   ngOnInit() {
+    this.getTabelList()
   }
 }

@@ -13,6 +13,15 @@
                 "index": 0
             },
             "x-prompt": "你想创建的component的名字:"
+        },
+        "path": {
+            "description": "模块路径",
+            "type": "string",
+            "$default": {
+                "$source": "argv",
+                "index": 0
+            },
+            "x-prompt": "你想创建的component的名字:"
         }
     },
     "required": ["name"]

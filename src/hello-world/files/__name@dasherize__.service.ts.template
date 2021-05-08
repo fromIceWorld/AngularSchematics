@@ -1,0 +1,65 @@
+import { HttpClient } from "@angular/common/http";
+import { Injectable } from "@angular/core";
+import { Observable } from "rxjs";
+import { HttpRequester } from "tui-api-library";
+import { TuiAppService, TuiUserService } from "tui-iframe";
+
+@Injectable({
+  providedIn: "root",
+})
+export class <%=classify(name)%>Service {
+  private serviceUrl: any;
+  constructor(
+    private http: HttpRequester,
+    private tuiUserService: TuiUserService,
+    private tuiAppService: TuiAppService
+  ) {
+    this.serviceUrl = this.tuiAppService.tuiApp.serviceUrl;
+    this.http.doSetCurUser(this.tuiUserService.curUser);
+  }
+
+  // 搜索列表
+  getTabelList(obj?): Observable<any> {
+    return this.http.doPost(
+      this.serviceUrl.assetManager +
+        "asset/organization/search", 
+      null,
+      {}
+    );
+  }
+
+  // EXAL模板
+  download(file, obj?): any {
+    return (
+      this.serviceUrl.assetManager +
+      "download/exceltemplate/" +
+      file +
+      "?" +
+      obj
+    );
+  }
+  // excel导入
+  import(obj) {
+    return this.serviceUrl.assetManager + "import/excel/org" + "?" + obj;
+  }
+
+  // 批量删除
+  delAll(obj?): Observable<any> {
+    return this.http.doPost(
+      this.serviceUrl.assetManager +
+        "asset/organization/deleteAll",
+      null,
+      {}
+    );
+  }
+
+  // 来源枚举
+  source(enumname, obj): Observable<any> {
+    return this.http.doGet(
+      this.serviceUrl.assetManager +
+        "asset/enum/statusmachine/" +
+        enumname
+    );
+  }
+
+}

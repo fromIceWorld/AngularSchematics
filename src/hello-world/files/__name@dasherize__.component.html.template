@@ -1,1 +1,118 @@
-<%= dasherize(name) %> works!
+<!-- --------业务模块容器---------- -->
+<div class="tui-exp">
+<!-- ------------搜索-------- -->
+    <div class="tui-exp-search">
+        <% for(let input of search){
+            __p += '<div class="tui-exp-list">' + '\n'
+                +  '  <span class="tui-exp-lable">' + input.label + '</span>'  + '\n'
+                +  '  <span class="tui-exp-input">'  + '\n'
+                +  '    <input'   + '\n'
+                +  '      type="' + input.inputType + '"\n'
+                +  '        placeholder="请输入'  + input.label + '"'  + '\n'
+                +  '        [(ngModel)]="searchParams.' + input.ngModel  + '"\n'
+                +  '        tInputText'  + '\n'
+                +  '    />'  + '\n'
+                +  '  </span>'  + '\n'
+                +  '</div> ' + '\n';
+           }
+         %>
+        <div class="tui-exp-list">
+            <button
+                tButton
+                label="查询"
+                icon="icon-search2"
+                (click)="getTabelList()"
+            ></button>
+            <button
+                tButton
+                class="iconfont icon-loop ui-button-color-grey m-l8"
+                (click)="reset()"
+            ></button>
+        </div>  
+    </div>
+<!-- ------------操作列表----------------- -->
+    <div class="tui-exp-operation">
+        <ul>
+            <% for(let button of buttons){
+                __p += '   <button'   + '\n'
+                    +  '      label="'  + button.label + '"'  + '\n'
+                    +  '      tTooltip="'  + button.tTooltip + '"'  + '\n'
+                    +  '      tooltipPosition="top"'  + '\n'
+                    +  '      class="' + button.class  + '"\n'
+                    +  '      icon="' + button.icon  + '"\n'
+                    +  '      (click)="' + button.click  + '"\n'
+                    +  '      tButton'  + '\n'
+                    +  '    ></button>'  + '\n'
+                }
+             %>
+        </ul>
+    </div>
+<!-- ------------table列表-----------------  -->
+    <div class="tui-exp-table">
+        <t-table
+            resizableColumns="true"
+            [noDataType]="'noData'"
+            [columns]="tableHeader"
+            [value]="tableList"
+            [loading]="tabelLoading"
+            [(selection)]="tabelSelected"
+            [noData]="tableList && tableList.length === 0 && init !== 0"
+        >
+            <ng-template tTemplate="header" let-columns>
+                <tr>
+                    <th width="40px" height="40px">
+                        <t-tableHeaderCheckbox></t-tableHeaderCheckbox>
+                    </th>
+                    <th height="40px" *ngFor="let item of columns" tResizableColumn>
+                        {{ item.header }}
+                    </th>
+                    <th width="150px" height="40px">操作</th>
+                </tr>
+            </ng-template>
+            <ng-template
+                tTemplate="body"
+                let-rowData
+                let-columns="columns"
+                let-rowIndex="rowIndex"
+            >
+                <tr [tSelectableRow]="rowData">
+                    <td>
+                        <t-tableCheckbox [value]="rowData"></t-tableCheckbox>
+                    </td>
+                    <td
+                        *ngFor="let col of columns"
+                        class="text-overflow ui-resizable-column"
+                        [tTooltip]="rowData[col.field]"
+                        tooltipPosition="bottom"
+                    >
+                        {{ rowData[col.field] }}
+                    </td>
+                    <td>
+                        <% for(let a of tabelOperation){
+                                __p += '    <a class="tablea">'  + '\n'
+                                    +  '      <span'  + '\n'
+                                    +  '        tTooltip="'  + a.tTooltip + '"'  + '\n'
+                                    +  '        tooltipPosition="bottom"'  + '\n'
+                                    +  '        class="' + a.class  + '"\n'
+                                    +  '        (click)="' + a.click  + '"\n'
+                                    +  '      ></span>'+ '"\n'
+                                    +  '    </a>'+ '"\n'
+                        }
+                        %>
+                    </td>
+                </tr>
+            </ng-template>
+        </t-table>    
+        <t-paginator
+            [style]="{ marginTop: '25px' }"
+            [displayRecords]="true"
+            [totalRecords]="total"
+            [rows]="searchParams.size"
+            [displayPages]="true"
+            [jumpToPage]="true"
+            [first]="first < 0 ? 0 : first"
+            [rowsPerPageOptions]="[10, 20, 30]"
+            (onPageChange)="pageChange($event)"
+        ></t-paginator>
+    </div>
+</div>
