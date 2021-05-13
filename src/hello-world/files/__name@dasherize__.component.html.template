@@ -41,8 +41,11 @@
                     +  '      class="' + button.class  + '"\n'
                     +  '      icon="' + button.icon  + '"\n'
                     +  '      (click)="' + button.click  + '"\n'
-                    +  '      tButton'  + '\n'
-                    +  '    ></button>'  + '\n'
+                    +  '      tButton'  + '\n';
+                    if(button.disabeled){
+                        __p += '[disabled]="' + button.disabled  + '"\n';
+                    }
+                __p +=  '    ></button>'  + '\n'
                 }
              %>
         </ul>
@@ -95,8 +98,8 @@
                                     +  '        tooltipPosition="bottom"'  + '\n'
                                     +  '        class="' + a.class  + '"\n'
                                     +  '        (click)="' + a.click  + '"\n'
-                                    +  '      ></span>'+ '"\n'
-                                    +  '    </a>'+ '"\n'
+                                    +  '      ></span>'+ '\n'
+                                    +  '    </a>'+ '\n'
                         }
                         %>
                     </td>
@@ -115,4 +118,7 @@
             (onPageChange)="pageChange($event)"
         ></t-paginator>
     </div>
+    <!-- ------------新增/编辑 弹窗-----------------  -->
+    <app-popup [popupData] = "popupData" (closePopup)="close($event)"></app-popup>
 </div>
+

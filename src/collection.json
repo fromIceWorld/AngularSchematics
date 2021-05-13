@@ -4,6 +4,10 @@
         "hello-world": {
             "description": "A blank schematic.",
             "factory": "./hello-world/index#genComponent"
+        },
+        "add-edit": {
+            "description": "A blank schematic.",
+            "factory": "./add-edit/index#addEdit"
         }
     }
 }

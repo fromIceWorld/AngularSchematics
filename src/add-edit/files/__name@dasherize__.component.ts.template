@@ -1,0 +1,163 @@
+import { Component, OnInit, EventEmitter, Input,Output,ViewChild } from '@angular/core';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  Validators,
+} from "@angular/forms";
+import { IndexService } from "src/app/validator/index.service";
+import { <%=classify(forPage)%>Service } from "../<%= forPage %>.service";
+
+<%
+  for(var input of inputs){
+    if(input.type == 'dropdown' && input.mode == 'lazy'){
+      __p+= 'enum searchTypes {'
+         +    'filter = "过滤查询", normal = "基础查询"'  
+         +  '}'
+    }
+  }
+%>
+
+@Component({
+  selector: 'app-<%= dasherize(name) %>',
+  templateUrl: './<%= dasherize(name) %>.component.html',
+  styleUrls: ['./<%= dasherize(name) %>.component.scss']
+})
+export class <%=classify(name)%>Component implements OnInit {
+  @Output() closePopup: EventEmitter<any> = new EventEmitter();
+  @Input() popupData:any | null;
+  form:FormGroup;
+  commitPending:boolean = false;
+  // 固定数据的下拉列表
+  <%
+    for(var input of inputs){
+      if(input.type == 'dropdown' && typeof input.componentTypeList == 'object'){
+        __p+= input.options + ': any = [';
+        input[input.options].map(item=>{
+          __p+= '{' + '\n'
+             +    'label:"' + item.label + '",'
+             +    'value:' + item.value + '},';
+        })
+        __p+= ']';
+      }
+    }
+   %> 
+  // 注入服务依赖
+  constructor(
+    private fb: FormBuilder,
+    private validate: IndexService,
+    private service: <%=classify(forPage)%>Service,
+  ) { }
+
+  ngOnInit() {
+    // 初始化表单
+    this.form = this.fb.group({
+       <% 
+        for(var input of inputs){
+            __p+= input.formControlName + ': new FormControl("' +  input.initValue + '", {' + '\n' ;
+            __p+= ' validators: ['
+                  for(var item of input.validators){
+                    __p +=  item.name + ',\n'; 
+                  }
+            __p+= '],';
+                  if(input.updateOn){
+                    __p+= 'updateOn:"' + input.updateOn + '",';
+                  }
+            __p+= '}),';      
+      }
+   %>
+      })
+  }
+  // focus 时，清除输入框校验的tips
+  clearTip(key) {
+    const keyForm = this.form.get(key);
+    keyForm.reset(keyForm.value);
+  }
+  // 新增，编辑
+  commit(){
+     //校验表单
+    for (const i in this.form.controls) {
+      this.form.controls[i].markAsDirty();
+      this.form.controls[i].updateValueAndValidity();
+    }
+        if (!this.form.valid) return;
+        // 置灰按钮
+        this.commitPending = true;
+
+
+  }
+    // 重置表单
+  formreset() {
+    this.form.reset();
+  }
+  back(){
+    this.closePopup.emit(false);
+  }
+  // 校验输入框
+  checkFormValid(key) {
+    const formKey = this.getFormKey(key);
+    return formKey.invalid && (formKey.dirty || formKey.touched);
+  }
+  // 获取form对应表单
+  getFormKey(key) {
+    return this.form.get(key);
+  }
+  //---------------表单懒加载下拉框--------
+  <%# 初始化懒加载下拉列表【maxPage，params，filterString，options，showDropFn,关联事件】%>
+  <%  
+    for(var input of inputs){
+      if(input.type == 'dropdown' && input.mode == 'lazy'){
+        __p+= '@ViewChild("' + input.selector + '") ' + input.selector + ';\n';
+        __p+= input.options + 'MaxPage:number=0;';
+        __p+= input.options + 'Params:any = { page:1,size:10,' + input.params + ':""};';
+        __p+= input.options + 'Filter: string = "";'
+        __p+= input.options + ': any = [];\n';
+        __p+= '// 展示下拉时，将上次filterValue回显到 输入框【组件在每次选择时会清空filterInput】\n';
+        __p+= input.events.onShow + '{'
+           +      'this.' + input.selector + '.filterViewChild.nativeElement.value =' 
+           +      'this.' + input.options + 'Filter;\n'
+           +      'const dom = this.' + input.selector + '.el.nativeElement;\n' 
+           +      'dom.addEventListener("mousewheel", (e) => {'
+           +          'if (e.deltaY) {'
+           +              ' if (++this.' + input.options + 'Params.page <= this.' + input.options + 'MaxPage){'
+           +                    'this.' + input.options + '(searchTypes.normal)'
+           +                '}'
+           +          '}'  
+           +       '})'   
+           +   '}\n'
+        __p+= '// 每次filterValue改变时，请求接口\n';
+        __p+= input.events.onFilterChange + '{'
+           +    'Object.assign(' + 'this.' + input.options + 'Params' +',{'
+           +            'page:1,size:10,' + input.params + ':$event.target.value' + '});'
+           +    'this.' + input.getListFn + '(searchTypes.filter);'
+           + '}\n'
+        __p+= '// 每次选择时，记录filterValue\n';
+        __p+= input.events.onChange + '{'
+           +    'this.' + input.options + 'Filter = this.' +  input.selector + '.filterViewChild.nativeElement.value;\n'
+           +    'this.' + input.options + 'Params.' + input.params + '=' + '$event.option.value;'
+           +   '}\n'
+       
+        __p+= '// 列表接口\n';
+        __p+= input.getListFn + '(type){'
+           +     'this.service.' + input.service + '(this.' + input.options + 'Params' + ').subscribe((res)=>{' 
+           +           'this.' + input.options + 'MaxPage = res.data.pages;'
+           +           'const { code, data } = res;'
+           +           'if (code === 200) {'
+           +              'if (type == searchTypes.filter) {'
+           +                 ' this.staffemnu = [];}'
+           +           'for (let item of data.list) {'
+           +             'this.' + input.options + '.push({'
+           +                    'label: item.' +  input.dataList.label + '.length > 30' 
+           +                                 '? item.' + input.dataList.label + '.slice(0, 30) + "..."' 
+           +                                 ': item.' + input.dataList.label + ','
+           +                    'titleLabel:item.' +   input.dataList.titleLabel  + ',\n'       
+           +                    'value:item.' +   input.dataList.value
+           +              '})'
+           +            '}'
+           +           '}'
+           +     '})'
+           +  '}\n';     
+      }
+    }
+  %>
+}

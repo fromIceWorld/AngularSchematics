@@ -15,6 +15,7 @@ export class <%=classify(name)%>Component implements OnInit {
   tabelSelected:any = [];
   init: number = 0;
   total: number = 0;
+  popupData:any = null;
   <%# -----------搜索框内的变量---------- %>
   searchParams = {
     page: 1,
@@ -62,13 +63,17 @@ export class <%=classify(name)%>Component implements OnInit {
           this.total = data.data.total;
           this.tableList = data.data.list;
         }
-        this.tabelLoading = false;
-        this.init++;
+        this.traTabelStatus();
       },
       (err) => {
-        this.tabelLoading = false;
+        this.traTabelStatus();
       }
     );
+  }
+  // 更改 tabel状态
+  traTabelStatus(){
+        this.tabelLoading = false;
+        this.init++;
   }
   // 重置查询字段 
   reset(){
@@ -88,11 +93,15 @@ export class <%=classify(name)%>Component implements OnInit {
   }
   // 新增 
   add(){
-    this.seeOrEditEvent.emit('add');
+    this.popupData = {};
   }
   // 新增 
-  edit(){
-    this.seeOrEditEvent.emit('edit');
+  edit(item){
+    this.popupData = item;
+  }
+  // 关闭弹窗
+  close($event){
+    this.popupData = null;
   }
   // 批量删除弹窗 
   batchDel(){

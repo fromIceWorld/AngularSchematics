@@ -1,0 +1,15 @@
+:host .input-box {
+  white-space: nowrap;
+  margin-right: 40px;
+  input,
+  t-dropdown {
+    width: 100%;
+    margin-right: 10px;
+  }
+  ::ng-deep .ui-dropdown {
+    width: 100% !important;
+  }
+}
+.tui-form-tips {
+  color: red;
+}

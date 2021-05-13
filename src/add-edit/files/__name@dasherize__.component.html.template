@@ -1,0 +1,96 @@
+<!-- 弹窗 title -->
+<div [hidden]="popupData == null" class="popup">
+    <t-title
+      [noTitleText]="'popupData'"
+    ></t-title>
+<!-- 弹窗表单 -->
+    <form [formGroup]="form">
+      <div
+        class="ui-grid ui-grid-pad"
+        style="margin: 10px 0px"
+      >
+      <% 
+        for(var input of inputs){
+          __p+= ' <div class="ui-grid-row">'
+             +       '<div class="ui-grid-col-1">'
+             +         '<span class="ui-gridspan">' + input.label + '</span>'
+             +      '</div>'
+             +       '<div class="ui-grid-col-3 input-box">';
+             if(input.type == 'text'){
+                __p+=       '<input'  +  '\n'
+                   +        '  (focus)="clearTip(' + "'"  +    input.formControlName + "'" + ')"\n'
+                   +        '  formControlName="' +  input.formControlName + '"\n'
+                   +        '  placeholder="请输入' +  input.label + '"\n'
+                   +        '  class="tui-exp-forminput"\n'
+                   +        '  type="text"\n'
+                   +        '  tInputText'
+                   +        '/>\n';
+                   for(var valid of input.validators){
+                     if(valid.name == 'Validators.required'){
+                        __p+= '<span class="tui-exp-formred">*</span>';
+                        break;
+                      }
+                   }                        
+             }else if(input.type == 'dropdown') {
+                __p+=       '<t-dropdown'  +  '\n'
+                   +        '    formControlName="' +  input.formControlName + '"\n'
+                   +        '  placeholder="请选择' +  input.label + '"\n'
+                   +        '  [options]="' + input.options + '"\n'
+                   +        '  [showClear]="true"'
+                   +        '  #dropdown\n';
+                      if(input.mode == 'lazy'){
+                          __p+= 'filter="true"'
+                             +  'filterModel="mote"'
+                             +  '#' + input.selector + ' \n'
+                             +  ' (onShow)="' + input.events.onShow + '"' + ' \n' 
+                             +  ' (onFilterChange)="' + input.events.onFilterChange + '"' + ' \n'
+                             +  ' (onChange)="' + input.events.onChange + '"' + ' \n'
+                             +  ' (onHide)="' + input.events.onHide  + '"' + ' \n'
+                      }
+                __p+=        '></t-dropdown>\n';
+             }
+          __p+=     ' </div>\n'
+             +      '<div class="ui-grid-col-3">'
+             +           '<span class="tui-form-tips"'; 
+                            if(input.validators.length >0){
+                              __p+= '*ngIf="checkFormValid('+ "'" +input.formControlName + "')" + '"' ;
+                            }
+          __p+=          '>';
+                          for(var valid of input.validators){
+                            __p+= '<ng-container ' 
+                                +   '*ngIf="getFormKey(' + "'" + input.formControlName + "'" + ').hasError(' + "'" + valid.errorType + "')"  + '"' + '\n'
+                                +   '>' + '\n'
+                                +    valid.tip      + '\n'
+                                +  '</ng-container>'
+                          };   
+           __p+=          '</span>'
+             +       '</div>'  
+             +    '</div>';
+        }
+      %>
+      </div>
+       <div class="tui-exp-formbtn">
+        <button
+          tButton
+          type="button"
+          [label]="'新增'"
+          class="ui-width"
+          (click)="commit()"
+        ></button>
+        <button
+          tButton
+          type="button"
+          label="重置"
+          (click)="formreset()"
+          class="ui-button-secondary ui-width"
+        ></button>
+        <button
+          tButton
+          type="button"
+          label="返回"
+          (click)="back()"
+          class="ui-button-secondary ui-width"
+        ></button>
+      </div>
+    </form>
+</div>

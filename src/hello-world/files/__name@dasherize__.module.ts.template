@@ -1,5 +1,7 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule} from '@angular/common';
 import { NgModule } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+
 import {
     ButtonModule,
     NoDataModule,
@@ -7,13 +9,20 @@ import {
     TableModule,
     ToastModule,
     TooltipModule,
+    DropdownModule,
+    TitleModule,
 } from 'tui-component-library';
 import { <%=classify(name)%>RoutingModule } from './<%= name %>-routing-config.module';
 import { <%=classify(name)%>Component } from './<%= name %>.component';
+import { PopupComponent } from "./component/popup.component";
 
 @NgModule({
-    declarations: [<%=classify(name)%>Component],
+    declarations: [<%=classify(name)%>Component,PopupComponent],
     imports: [
+        DropdownModule,
+        TitleModule,
+        FormsModule,
+        ReactiveFormsModule,
         CommonModule,
         <%=classify(name)%>RoutingModule,
         ButtonModule,
