@@ -16,53 +16,24 @@ export class <%=classify(name)%>Service {
   ) {
     this.http.doSetCurUser(this.tuiUserService.curUser);
   }
-
- 
-  <%#列表，删除，修改状态等接口 %>
+   <%#表单基础接口：新增，编辑 %>
   <%
-    for(var service  of  formService){
-        __p+= service.name + '(params): Observable<any> {'
+    for(var service of  formService){
+      __p+= service.name + '(params): Observable<any> {'
          +    'return this.http.' + service.method + '('
          +        'this.serviceUrl + "' + service.url + '",';
             if(service.method == 'doPost'){
               __p+= 'params,params';
             }else{
-              __p+= 'params,null';
+              __p+= 'params,params';
             }
-      __p+= ');'
-         + '}'     
+      __p+= ')};';
+         + '}'      
     }
   %>
-
-  // EXAL模板
-  download(file, params?): any {
-    return (
-      this.serviceUrl +
-      "download/exceltemplate/" +
-      file +
-      "?" +
-      params
-    );
-  }
-  // EXAL模板
-  delAll(file, params?): any {
-    return (
-      this.serviceUrl +
-      "download/exceltemplate/" +
-      file +
-      "?" +
-      params
-    );
-  }
-  // excel导入
-  import(params) {
-    return this.serviceUrl + "import/excel/org" + "?" + params;
-  }
-
-
   <%#表单枚举接口：懒加载，枚举类 %>
   <%
-    for(var input of  search){
+    for(var input of  inputs){
      if(input.type == 'dropdown' && input.getListFn){
         __p+= input.service.name + '(params): Observable<any> {'
          +    'return this.http.' + input.service.method + '('
@@ -77,5 +48,4 @@ export class <%=classify(name)%>Service {
      } 
     }
   %>
-
 }

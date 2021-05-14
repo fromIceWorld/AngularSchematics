@@ -1,12 +1,73 @@
 const setting: any = {
     name: 'test-template',
+    title: '组件',
     path: 'src/app/ofmodules/test-template',
+    formService: [
+        {
+            name: 'getTabelList',
+            method: 'doPost',
+            url: '/asset/asset/info/search',
+        },
+    ],
     search: [
         {
-            inputType: 'text',
-            label: '组织编号',
-            ngModel: 'orgNum',
-            dataType: 'string',
+            label: '设备名称',
+            type: 'text',
+            formControlName: 'assetName',
+            initValue: '',
+            validators: [],
+            param: 'assetName',
+        },
+        {
+            label: '设备类型',
+            type: 'dropdown',
+            mode: 'normal',
+            getListFn: 'assettypeList',
+            formControlName: 'assetType',
+            initValue: '',
+            validators: [],
+            options: 'assettypes',
+            componentTypeList: 'service',
+            dataList: {
+                label: 'employeeName',
+                titleLabel: 'employeeName',
+                value: 'id',
+            },
+            service: {
+                name: 'getAssettypeList',
+                method: 'doGet',
+                url: 'asset/enum/statusmachine/asset_type',
+            },
+            param: '{page:0,size:0}',
+        },
+        {
+            label: '所属员工',
+            type: 'dropdown',
+            mode: 'lazy',
+            getListFn: 'staffMenuList',
+            formControlName: 'employeeId',
+            initValue: '',
+            validators: [],
+            options: 'staffemnu',
+            componentTypeList: 'service',
+            params: 'ename',
+            selector: 'dropFilterStaff',
+            events: {
+                onShow: 'changeStaffMenuFilter()',
+                onFilterChange: 'filterStaffMenu($event)',
+                onChange: 'changeStaffMenuSelected($event)',
+            },
+            dataList: {
+                label: 'employeeName',
+                titleLabel: 'employeeName',
+                value: 'id',
+            },
+            service: {
+                name: 'getStaffList',
+                method: 'doPost',
+                url: 'asset/enum/empandempid',
+            },
+            param: 'empid',
         },
     ],
     buttons: [
@@ -22,22 +83,14 @@ const setting: any = {
             icon: 'icon-delete',
             tTooltip: '批量删除',
             click: 'batchDel()',
-            disabled: '[disabled]="!tabelSelected.length"',
-            class: 'btn ui-button-nav',
-        },
-        {
-            label: '下载模板',
-            icon: '',
-            tTooltip: '下载模板',
-            click: 'downLoad()',
+            disabled: '[disabled]="tabelSelected.length == 0"',
             class: 'btn ui-button-nav',
         },
     ],
     tableHeader: [
-        { field: 'orgNumber', header: '组织编号' },
-        { field: 'orgName', header: '组织名称' },
-        { field: 'orgType', header: '组织类型' },
-        { field: 'email', header: '组织邮箱' },
+        { field: 'assetName', header: '设备名称' },
+        { field: 'assetType', header: '设备类型' },
+        { field: 'updateTime', header: '修改时间' },
     ],
     tabelOperation: [
         {
@@ -48,7 +101,7 @@ const setting: any = {
         {
             tTooltip: '修改',
             class: 'icon-edit',
-            click: 'edit()',
+            click: 'edit(rowData)',
         },
     ],
 };

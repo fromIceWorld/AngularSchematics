@@ -1,6 +1,22 @@
-import { Component, OnInit, EventEmitter } from '@angular/core';
+import { Component, OnInit, EventEmitter,ViewChild } from '@angular/core';
 import { <%=classify(name)%>Service } from "./<%= name %>.service";
 import { MessageService } from "tui-component-library";
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  Validators,
+} from "@angular/forms";
+
+<%
+  for(var input of search){
+    if(input.type == 'dropdown' && input.mode == 'lazy'){
+      __p+= 'enum searchTypes {'
+         +    'filter = "过滤查询", normal = "基础查询"'  
+         +  '}'
+    }
+  }
+%>
 
 @Component({
   selector: 'app-<%= dasherize(name) %>',
@@ -8,6 +24,7 @@ import { MessageService } from "tui-component-library";
   styleUrls: ['./<%= dasherize(name) %>.component.scss']
 })
 export class <%=classify(name)%>Component implements OnInit {
+  form:FormGroup;
   seeOrEditEvent = new EventEmitter();
   first: number = 0;
   tabelLoading: boolean = true;
@@ -15,16 +32,22 @@ export class <%=classify(name)%>Component implements OnInit {
   tabelSelected:any = [];
   init: number = 0;
   total: number = 0;
-  popupData:any = null;
+  popupData:any =  {
+      title: '',
+      data:null
+    };
+    // 固定数据的下拉列表
+  <%
+    for(var input of search){
+      if(input.type == 'dropdown' && input.mode == 'normal'){
+        __p+= input.options + ': any = [];';
+      }
+    }
+   %> 
   <%# -----------搜索框内的变量---------- %>
   searchParams = {
     page: 1,
     size: 10,
-    <% 
-      for(var input of search){
-        __p += input.ngModel + ': ' + '""' + ',\n';
-      }
-    %>
   };
 
   <%# -----------table表头---------- %>
@@ -49,14 +72,15 @@ export class <%=classify(name)%>Component implements OnInit {
   }
   // 注入服务依赖
   constructor(
+    private fb: FormBuilder,
     private messageService: MessageService,
-    private <%=classify(name)%>Service: <%=classify(name)%>Service,
+    private service: <%=classify(name)%>Service,
   ) { }
   //tabel列表数据
   getTabelList(){
     this.init = 0;
     this.tabelLoading = true;
-    this.<%=classify(name)%>Service.getTabelList(this.searchParams).subscribe(
+    this.service.getTabelList(Object.assign(this.searchParams,this.form.value)).subscribe(
       (data: any) => {
         if (data.code == 200) {
           this.first = data.data.startRow - 1;
@@ -80,28 +104,33 @@ export class <%=classify(name)%>Component implements OnInit {
     this.searchParams = {
       page: 1,
       size: 10,
-      <% 
-        for(var input of search){
-          __p += input.ngModel + ': ' + '""' + ',\n';
-        }
-      %>
-    }
+    };
+    this.form.reset();
   }
-  // 新增 
+  // 查看 
   see(){
     this.seeOrEditEvent.emit('see');
   }
   // 新增 
   add(){
-    this.popupData = {};
+    this.popupData = {
+      title: '新增' + '<%= title %>',
+      data:{}
+    };
   }
   // 新增 
   edit(item){
-    this.popupData = item;
+    this.popupData = {
+      title: '编辑' + '<%= title %>',
+      data:item
+    };
   }
   // 关闭弹窗
   close($event){
-    this.popupData = null;
+    this.popupData = {
+      title: '',
+      data:null
+    };
   }
   // 批量删除弹窗 
   batchDel(){
@@ -112,7 +141,7 @@ export class <%=classify(name)%>Component implements OnInit {
     let ids = this.tabelSelected.map((item) => {
       return item.id;
     });
-    this.<%=classify(name)%>Service
+    this.service
       .delAll({ ids: ids.join(",") })
       .subscribe((res: any) => {
         if (res.code == 200) {
@@ -140,6 +169,101 @@ export class <%=classify(name)%>Component implements OnInit {
 
   }
   ngOnInit() {
-    this.getTabelList()
+    //初始化搜索框form
+    this.form = this.fb.group({
+       <% 
+        for(var input of search){
+            __p+= input.formControlName + ': new FormControl("' +  input.initValue + '"),';      
+      }
+       %>
+      })
+    //获取tabel 列表数据
+    this.getTabelList();
+    // 初始化时调用枚举接口【lazy/normal】
+     <%
+      for(var input of search){
+        if(input.getListFn){
+          if(input.mode == 'lazy'){
+            __p+= 'this.' + input.getListFn + '(searchTypes.normal)' + ';\n';
+          }else{
+          __p+= 'this.' + input.getListFn + '()' + ';\n';
+          }
+        }
+      }
+     %> 
   }
+    
+  //---------------表单懒加载下拉框--------
+  <%# 初始化懒加载下拉列表【maxPage，params，filterString，options，showDropFn,关联事件】%>
+  <%  
+    for(var input of search){
+      if(input.type == 'dropdown' && input.mode == 'lazy'){
+        __p+= '@ViewChild("' + input.selector + '") ' + input.selector + ';\n';
+        __p+= input.options + 'MaxPage:number=0;';
+        __p+= input.options + 'Params:any = { page:1,size:10,' + input.params + ':""};';
+        __p+= input.options + 'Filter: string = "";'
+        __p+= input.options + ': any = [];\n';
+        __p+= '// 展示下拉时，将上次filterValue回显到 输入框【组件在每次选择时会清空filterInput】\n';
+        __p+= input.events.onShow + '{'
+           +      'this.' + input.selector + '.filterViewChild.nativeElement.value =' 
+           +      'this.' + input.options + 'Filter;\n'
+           +      'const dom = this.' + input.selector + '.el.nativeElement;\n' 
+           +      'dom.addEventListener("mousewheel", (e) => {'
+           +          'if (e.deltaY) {'
+           +              ' if (++this.' + input.options + 'Params.page <= this.' + input.options + 'MaxPage){'
+           +                    'this.' + input.getListFn + '(searchTypes.normal)'
+           +                '}'
+           +          '}'  
+           +       '})'   
+           +   '}\n'
+        __p+= '// 每次filterValue改变时，请求接口\n';
+        __p+= input.events.onFilterChange + '{'
+           +    'Object.assign(' + 'this.' + input.options + 'Params' +',{'
+           +            'page:1,size:10,' + input.params + ':$event.target.value' + '});'
+           +    'this.' + input.getListFn + '(searchTypes.filter);'
+           + '}\n'
+        __p+= '// 每次选择时，记录filterValue\n';
+        __p+= input.events.onChange + '{'
+           +    'this.' + input.options + 'Filter = this.' +  input.selector + '.filterViewChild.nativeElement.value;\n'
+           +    'this.' + input.options + 'Params.' + input.params + '=' + '$event.option.value;'
+           +   '}\n'
+       
+        __p+= '// 列表接口\n';
+        __p+= input.getListFn + '(type){'
+           +     'this.service.' + input.service.name + '(this.' + input.options + 'Params' + ').subscribe((res)=>{' 
+           +           'this.' + input.options + 'MaxPage = res.data.pages;'
+           +           'const { code, data } = res;'
+           +           'if (code === 200) {'
+           +              'if (type == searchTypes.filter) {'
+           +                 ' this.staffemnu = [];}'
+           +           'for (let item of data.list) {'
+           +             'this.' + input.options + '.push({'
+           +                    'label: item.' +  input.dataList.label + '.length > 30' 
+           +                                 '? item.' + input.dataList.label + '.slice(0, 30) + "..."' 
+           +                                 ': item.' + input.dataList.label + ','
+           +                    'titleLabel:item.' +   input.dataList.titleLabel  + ',\n'       
+           +                    'value:item.' +   input.dataList.value
+           +              '})'
+           +            '}'
+           +           '}'
+           +     '})'
+           +  '}\n';     
+      }
+    }
+  %>
+  <%# 枚举接口方法%>
+  <% 
+    for(var input of search){
+      if(input.type == 'dropdown' && input.mode == 'normal'){
+        __p+= input.getListFn + '(){'
+           + 'this.service.' + input.service.name + '({page:0,size:0})'
+           +  '.subscribe((res)=>{'
+           +    'for(let item of res.data.list){'
+           +        'this.' + input.options + '.push({label:item.message,value:item.code})'
+           +     '}'
+           +   '})'
+           +  '}'
+      }
+    }
+  %>
 }

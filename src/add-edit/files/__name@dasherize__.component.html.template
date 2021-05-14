@@ -1,7 +1,7 @@
 <!-- 弹窗 title -->
-<div [hidden]="popupData == null" class="popup">
+<div class="popup">
     <t-title
-      [noTitleText]="'popupData'"
+      [noTitleText]="popupData.title"
     ></t-title>
 <!-- 弹窗表单 -->
     <form [formGroup]="form">
@@ -45,7 +45,6 @@
                              +  ' (onShow)="' + input.events.onShow + '"' + ' \n' 
                              +  ' (onFilterChange)="' + input.events.onFilterChange + '"' + ' \n'
                              +  ' (onChange)="' + input.events.onChange + '"' + ' \n'
-                             +  ' (onHide)="' + input.events.onHide  + '"' + ' \n'
                       }
                 __p+=        '></t-dropdown>\n';
              }
@@ -73,8 +72,9 @@
         <button
           tButton
           type="button"
-          [label]="'新增'"
+          [label]="popupData.title.indexOf('新增') > -1 ? '新增' : '编辑'"
           class="ui-width"
+          [disabled]="this.commitPending"
           (click)="commit()"
         ></button>
         <button
@@ -94,3 +94,5 @@
       </div>
     </form>
 </div>
+<!-- 提示信息弹窗 -->
+<t-toast [style]="{ marginTop: '80px' }"></t-toast>

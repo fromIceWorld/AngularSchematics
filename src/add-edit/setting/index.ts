@@ -2,13 +2,25 @@ export const setting = {
     forPage: 'test-template',
     path: 'src/app/ofmodules/test-template/component',
     name: 'popup',
-    title: '新增/编辑',
+    title: '组件',
     formPrams: 'formPrams',
+    formService: [
+        {
+            name: 'add',
+            method: 'doPost',
+            url: 'component',
+        },
+        {
+            name: 'edit',
+            method: 'doPut',
+            url: 'component',
+        },
+    ],
     inputs: [
         {
-            label: '组件名称',
+            label: '设备名称',
             type: 'text',
-            formControlName: 'componentName',
+            formControlName: 'assetName',
             initValue: '',
             validators: [
                 {
@@ -23,27 +35,29 @@ export const setting = {
                 },
             ],
             updateOn: 'blur',
-            param: 'componentName',
+            param: 'assetName',
         },
         {
-            label: '组件类型',
+            label: '设备类型',
             type: 'dropdown',
             mode: 'normal',
-            formControlName: 'componentType',
+            getListFn: 'assettypeList',
+            formControlName: 'assetType',
             initValue: '',
             validators: [],
-            options: 'componentTypeList',
-            componentTypeList: [
-                {
-                    label: '普通组件',
-                    value: '0',
-                },
-                {
-                    label: '基础组件',
-                    value: '1',
-                },
-            ],
-            param: 'componentType',
+            options: 'assettypes',
+            componentTypeList: 'service',
+            dataList: {
+                label: 'employeeName',
+                titleLabel: 'employeeName',
+                value: 'id',
+            },
+            service: {
+                name: 'getAssettypeList',
+                method: 'doGet',
+                url: 'asset/enum/statusmachine/asset_type',
+            },
+            param: '{page:0,size:0}',
         },
         {
             label: '员工',
@@ -67,10 +81,10 @@ export const setting = {
                 titleLabel: 'employeeName',
                 value: 'id',
             },
-            service: 'getStaffList',
-            http: {
+            service: {
+                name: 'getStaffList',
+                method: 'doPost',
                 url: 'asset/enum/empandempid',
-                type: 'doGet',
             },
             param: 'empid',
         },

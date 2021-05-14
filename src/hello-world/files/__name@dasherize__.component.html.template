@@ -1,34 +1,57 @@
 <!-- --------业务模块容器---------- -->
-<div class="tui-exp">
+<div  [hidden]="popupData.data !== null"  class="tui-exp">
 <!-- ------------搜索-------- -->
     <div class="tui-exp-search">
-        <% for(let input of search){
-            __p += '<div class="tui-exp-list">' + '\n'
-                +  '  <span class="tui-exp-lable">' + input.label + '</span>'  + '\n'
-                +  '  <span class="tui-exp-input">'  + '\n'
-                +  '    <input'   + '\n'
-                +  '      type="' + input.inputType + '"\n'
-                +  '        placeholder="请输入'  + input.label + '"'  + '\n'
-                +  '        [(ngModel)]="searchParams.' + input.ngModel  + '"\n'
-                +  '        tInputText'  + '\n'
-                +  '    />'  + '\n'
-                +  '  </span>'  + '\n'
-                +  '</div> ' + '\n';
-           }
-         %>
-        <div class="tui-exp-list">
-            <button
-                tButton
-                label="查询"
-                icon="icon-search2"
-                (click)="getTabelList()"
-            ></button>
-            <button
-                tButton
-                class="iconfont icon-loop ui-button-color-grey m-l8"
-                (click)="reset()"
-            ></button>
-        </div>  
+        <form [formGroup]="form">
+            <% for(let input of search){
+                __p += '<div class="tui-exp-list">' + '\n'
+                    +  '  <span class="tui-exp-lable">' + input.label + '</span>'  + '\n'
+                    +  '  <span class="tui-exp-input">'  + '\n'
+
+                if(input.type == 'text'){
+                    __p+=       '<input'  +  '\n'
+                    +        '  formControlName="' +  input.formControlName + '"\n'
+                    +        '  placeholder="请输入' +  input.label + '"\n'
+                    +        '  type="text"\n'
+                    +        '  tInputText'
+                    +        '/>\n';
+                }else if(input.type == 'dropdown') {
+                __p+=       '<t-dropdown'  +  '\n'
+                   +        '    formControlName="' +  input.formControlName + '"\n'
+                   +        '  placeholder="请选择' +  input.label + '"\n'
+                   +        '  [options]="' + input.options + '"\n'
+                   +        '  [showClear]="true"'
+                   +        '  #dropdown\n';
+                      if(input.mode == 'lazy'){
+                          __p+= 'filter="true"'
+                             +  'filterModel="mote"'
+                             +  '#' + input.selector + ' \n'
+                             +  ' (onShow)="' + input.events.onShow + '"' + ' \n' 
+                             +  ' (onFilterChange)="' + input.events.onFilterChange + '"' + ' \n'
+                             +  ' (onChange)="' + input.events.onChange + '"' + ' \n'
+                      }
+                __p+=        '></t-dropdown>\n';
+             }
+
+
+                 __p+=  '  </span>'  + '\n'
+                    +  '</div> ' + '\n';
+            }
+            %>
+            <div class="tui-exp-list">
+                <button
+                    tButton
+                    label="查询"
+                    icon="icon-search2"
+                    (click)="getTabelList()"
+                ></button>
+                <button
+                    tButton
+                    class="iconfont icon-loop ui-button-color-grey m-l8"
+                    (click)="reset()"
+                ></button>
+            </div>
+        </form>  
     </div>
 <!-- ------------操作列表----------------- -->
     <div class="tui-exp-operation">
@@ -42,8 +65,8 @@
                     +  '      icon="' + button.icon  + '"\n'
                     +  '      (click)="' + button.click  + '"\n'
                     +  '      tButton'  + '\n';
-                    if(button.disabeled){
-                        __p += '[disabled]="' + button.disabled  + '"\n';
+                    if(button.disabled){
+                        __p += button.disabled  + '\n';
                     }
                 __p +=  '    ></button>'  + '\n'
                 }
@@ -118,7 +141,10 @@
             (onPageChange)="pageChange($event)"
         ></t-paginator>
     </div>
-    <!-- ------------新增/编辑 弹窗-----------------  -->
-    <app-popup [popupData] = "popupData" (closePopup)="close($event)"></app-popup>
+    
 </div>
 
+<!-- ------------新增/编辑 弹窗-----------------  -->
+ <div *ngIf="popupData.data !== null" class="tui-exp">
+    <app-popup [popupData]="popupData" (closePopup)="close($event)"></app-popup>
+</div>
